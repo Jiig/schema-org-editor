@@ -175,12 +175,17 @@
         <h4 class="modal-title" id="datastreamDlgLabel">Associate Datastream</h4>
       </div>
       <div class="modal-body">
-        <form action="/upload" method="post" enctype="multipart/form-data">
-          <p>
-            <input type="file" name="file">
-            <input type="submit" value="Upload">
-          </p>
-        </form>
+        <span class="btn btn-success fileinput-button">
+          <i class="glyphicon glyphicon-plus"></i>
+          <span>Select files...</span>
+          <input id="fileupload" type="file" name="files[]" multiple>
+        </span>
+
+        <div class="progress" id="progress">
+          <div class="progress-bar progress-bar-success"></div>
+        </div>
+
+        <div id="files" class="files"></div>
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
@@ -250,6 +255,12 @@
     <!-- Include all compiled plugins (below), or include individual files as needed -->
 <script src="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
 <script src="http://cdnjs.cloudflare.com/ajax/libs/knockout/3.1.0/knockout-min.js"></script>
+<!-- The jQuery UI widget factory, can be omitted if jQuery UI is already included -->
+<script src="js/vendor/jquery.ui.widget.js"></script>
+<!-- The Iframe Transport is required for browsers without support for XHR file uploads -->
+<script src="js/jquery.iframe-transport.js"></script>
+<!-- The basic File Upload plugin -->
+<script src="js/jquery.fileupload.js"></script>
 <script>
 
   function deleteValue(element) {
@@ -314,6 +325,43 @@
       });
     }
   }
+
+  $('#fileupload').fileupload({
+        url: '/upload',
+        dataType: 'json',
+        done: function (e, data) {
+            $.each(data.result.files, function (index, file) {
+                $('<p/>').text(file.name).appendTo('#files');
+            });
+        },
+        progressall: function (e, data) {
+            var progress = parseInt(data.loaded / data.total * 100, 10);
+            $('#progress .progress-bar').css(
+                'width',
+                progress + '%'
+            );
+        }
+    }).prop('disabled', !$.support.fileInput)
+        .parent().addClass($.support.fileInput ? undefined : 'disabled');
+
+  /*function upload(element) {
+    console.log('Are we here?')
+    var data = new FormData($('uploadform')[0]);
+    console.log(data);
+    $.ajax({
+      url: '/upload',
+      type: 'POST',
+      data: {entiti_id: $('#entity_id').val(),
+            value: data},
+      cache: false,
+      contentType: false,
+      processData: false
+    }).done(function(stats) {
+      if(!status) {
+        alert("datastream not saved for " + entity_id);
+      }
+    });
+  }*/
 
   function EntityProperty(propId,
                           propName,
@@ -402,9 +450,9 @@
         "http://fedora.info/definitions/v4/repository#createdBy",
         "http://fedora.info/definitions/v4/repository#lastModified",
         "http://fedora.info/definitions/v4/repository#lastModifiedBy",
-        "http://fedora.info/definitions/v4/repository#uuid", 
-        "http://fedora.info/definitions/v4/repository#hasParent"]; 
-   
+        "http://fedora.info/definitions/v4/repository#uuid",
+        "http://fedora.info/definitions/v4/repository#hasParent"];
+
 
     self.loadEntity = function() {
       if (self.selectedValue().substring(0, 'http'.length) !== 'http') {
@@ -427,7 +475,7 @@
              if(uri in entity) {
                var name = uri.split("#")[1];
                self.fedoraProperties.push({'name': name,
-                                           'value': uri});  
+                                           'value': uri});
              }
            }
            self.idValue(entity['@id']);

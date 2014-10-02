@@ -23,14 +23,11 @@ from flask import url_for
 from werkzeug import secure_filename
 
 #! Temp coding hack, need to install when finished
-#sys.path.append("E:\\prog\\flask-fedora-commons")
-sys.path.append("C:\\Users\\jernelson\\Development\\flask-fedora")
+sys.path.append("E:\\prog\\flask-fedora-commons")
+#sys.path.append("C:\\Users\\jernelson\\Development\\flask-fedora")
 from flask_fedora_commons import Repository
 
 from string import Template
-
-TEMP_UPLOADS = 'files/temp' # Probably not needed
-ALLOWED_EXTENSIONS = set(["PDF", "MP3"])
 
 editor = Flask(__name__)
 editor.config["UPLOAD_FOLDER"] = 'files/temp'
