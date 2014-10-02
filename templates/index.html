@@ -175,10 +175,10 @@
         <h4 class="modal-title" id="datastreamDlgLabel">Associate Datastream</h4>
       </div>
       <div class="modal-body">
-        <form action="/upload" method="post" enctype="multipart/form-data">
+        <form enctype="multipart/form-data" name="ulForm">
           <p>
             <input type="file" name="file">
-            <input type="submit" value="Upload">
+            <input type="button" name="fileupload" onclick="upload(this)" value="Upload">
           </p>
         </form>
       </div>
@@ -251,6 +251,28 @@
 <script src="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
 <script src="http://cdnjs.cloudflare.com/ajax/libs/knockout/3.1.0/knockout-min.js"></script>
 <script>
+  function upload(element) {
+    var formData = new FormData($('ulForm')[0]);
+    var entity_id = $('#entity_id').val();
+    $.ajax({
+      url: '/upload',
+      type: 'POST',
+      xhr: function() {
+        var myXhr = $.ajaxSettings.xhr();
+        if(myXhr.upload) {
+          myXhr.upload.addEventListender('progress', progress, false);
+        }
+        return myXhr;
+      },
+      data: {
+        value: formData,
+        entity_id: entity_id
+      },
+      cache: false,
+      contentType: false,
+      processData: false
+    });
+  };
 
   function deleteValue(element) {
     var input =  $('#'+element.attributes['target'].value);
@@ -268,7 +290,6 @@
        input_field.remove();
        //element.attributes['original'] = input.val();
      });
-
   }
 
   function replaceValue(element) {
@@ -402,9 +423,9 @@
         "http://fedora.info/definitions/v4/repository#createdBy",
         "http://fedora.info/definitions/v4/repository#lastModified",
         "http://fedora.info/definitions/v4/repository#lastModifiedBy",
-        "http://fedora.info/definitions/v4/repository#uuid", 
-        "http://fedora.info/definitions/v4/repository#hasParent"]; 
-   
+        "http://fedora.info/definitions/v4/repository#uuid",
+        "http://fedora.info/definitions/v4/repository#hasParent"];
+
 
     self.loadEntity = function() {
       if (self.selectedValue().substring(0, 'http'.length) !== 'http') {
@@ -427,7 +448,7 @@
              if(uri in entity) {
                var name = uri.split("#")[1];
                self.fedoraProperties.push({'name': name,
-                                           'value': uri});  
+                                           'value': uri});
              }
            }
            self.idValue(entity['@id']);
